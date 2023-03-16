@@ -14,6 +14,7 @@ class NoteListComponent extends Component {
 		this.state = {
 			items: [],
 			selectedItemIds: [],
+			refreshing: false,
 		};
 		this.rootRef_ = null;
 		this.styles_ = {};
@@ -85,12 +86,27 @@ class NoteListComponent extends Component {
 	render() {
 		// `enableEmptySections` is to fix this warning: https://github.com/FaridSafi/react-native-gifted-listview/issues/39
 
+		const setRefreshing = (refreshing) => this.setState({
+			...this.state,
+			refreshing,
+		});
+
+		const onRefresh = () => {
+			setRefreshing(true);
+			setTimeout(() => {
+				setRefreshing(false);
+				this.props.onRefresh();
+			}, 200);
+		};
+
 		if (this.props.items.length) {
 			return <FlatList
 				ref={ref => (this.rootRef_ = ref)}
 				data={this.props.items}
 				renderItem={({ item }) => <NoteItem note={item} />}
 				keyExtractor={item => item.id}
+				refreshing={this.state.refreshing}
+				onRefresh={onRefresh}
 			/>;
 		} else {
 			if (!this.props.folders.length) {

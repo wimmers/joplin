@@ -179,6 +179,7 @@ class EditableNoteItemComponent extends Component {
 										this.props.isTodo ?
 											'New to-do' : 'New note'
 									}
+									autoFocus={true}
 								/>
 							}
 							<TouchableOpacity

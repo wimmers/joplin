@@ -301,11 +301,15 @@ class NotesScreenComponent extends BaseScreenComponent<any> {
 							is_todo: isTodo ? 1 : 0,
 							title: text,
 						}, { provisional: false });
+						this.setState({ ...this.state, showQuickNote: false });
 					}}
 				/>
 				}
 				<NoteList
 					style={this.styles().noteList}
+					onRefresh={() =>
+						this.setState({ ...this.state, showQuickNote: true })
+					}
 				/>
 				{actionButtonComp}
 				<DialogBox
