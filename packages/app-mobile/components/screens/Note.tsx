@@ -10,7 +10,7 @@ import { ChangeEvent, UndoRedoDepthChangeEvent } from '../NoteEditor/types';
 
 const FileViewer = require('react-native-file-viewer').default;
 const React = require('react');
-const { Platform, Keyboard, View, TextInput, StyleSheet, Linking, Image, Share, PermissionsAndroid } = require('react-native');
+const { Platform, Keyboard, View, Text, TextInput, StyleSheet, Linking, Image, Share, PermissionsAndroid } = require('react-native');
 const { connect } = require('react-redux');
 // const { MarkdownEditor } = require('@joplin/lib/../MarkdownEditor/index.js');
 import Note from '@joplin/lib/models/Note';
@@ -48,7 +48,8 @@ import VoiceTypingDialog from '../voiceTyping/VoiceTypingDialog';
 import { voskEnabled } from '../../services/voiceTyping/vosk';
 import { isSupportedLanguage } from '../../services/voiceTyping/vosk.android';
 const urlUtils = require('@joplin/lib/urlUtils');
-import GestureRecognizer/* , {swipeDirections}*/ from 'react-native-swipe-gestures';
+// @ts-ignore
+import GestureRecognizer, { swipeDirections } from 'react-native-swipe-gestures';
 
 // import Vosk from 'react-native-vosk';
 
@@ -93,6 +94,8 @@ class NoteScreenComponent extends BaseScreenComponent {
 			},
 
 			voiceTypingDialogShown: false,
+
+			gestureName: null,
 		};
 
 		this.saveActionQueues_ = {};
@@ -1167,6 +1170,25 @@ class NoteScreenComponent extends BaseScreenComponent {
 		this.setState({ voiceTypingDialogShown: false });
 	}
 
+	private onSwipe(gestureName: any, _gestureState: any) {
+		this.setState({ gestureName });
+	}
+
+	private getSwipeIndicator() {
+		const { SWIPE_LEFT, SWIPE_RIGHT } = swipeDirections;
+		switch (this.state.gestureName) {
+		case SWIPE_LEFT:
+			return <Text style={{ position: 'absolute', right: 10, top: 200 }}>
+				{'Next'}
+			</Text>;
+		case SWIPE_RIGHT:
+			return <Text style={{ position: 'absolute', left: 10, top: 200 }}>
+				{'Back'}
+			</Text>;
+		}
+		return undefined;
+	}
+
 	public render() {
 		if (this.state.isLoading) {
 			return (
@@ -1345,16 +1367,21 @@ class NoteScreenComponent extends BaseScreenComponent {
 				/>
 				{titleComp}
 				<GestureRecognizer
+					onSwiping={this.onSwipe}
 					onSwipeLeft={(_gestureState) => {
+						this.setState({ gestureName: '' });
 						void this.newNoteNavigate(this.props.folderId, isTodo);
 					}}
-					onSwipeRight={(_gestureState) => undefined}
+					onSwipeRight={(_gestureState) => {
+						this.setState({ gestureName: '' });
+					}}
 					style={{ flex: 1 }}
 					config={{
 						needVerticalScroll: true,
 					}}
 				>
 					{bodyComponent}
+					{this.getSwipeIndicator()}
 				</GestureRecognizer>
 				{renderActionButton()}
 				{renderVoiceTypingDialog()}
