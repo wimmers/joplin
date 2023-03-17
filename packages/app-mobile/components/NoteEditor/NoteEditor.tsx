@@ -123,6 +123,9 @@ const useEditorControl = (
 ): EditorControl => {
 	return useMemo(() => {
 		return {
+			reset() {
+				injectJS('cm.reset();');
+			},
 			undo() {
 				injectJS('cm.undo();');
 			},

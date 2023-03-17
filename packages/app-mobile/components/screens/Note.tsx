@@ -48,6 +48,7 @@ import VoiceTypingDialog from '../voiceTyping/VoiceTypingDialog';
 import { voskEnabled } from '../../services/voiceTyping/vosk';
 import { isSupportedLanguage } from '../../services/voiceTyping/vosk.android';
 const urlUtils = require('@joplin/lib/urlUtils');
+import GestureRecognizer/* , {swipeDirections}*/ from 'react-native-swipe-gestures';
 
 // import Vosk from 'react-native-vosk';
 
@@ -250,6 +251,20 @@ class NoteScreenComponent extends BaseScreenComponent {
 		this.voiceTypingDialog_onDismiss = this.voiceTypingDialog_onDismiss.bind(this);
 	}
 
+	// Duplicate from Notes.tsx
+	public newNoteNavigate = async (folderId: string, isTodo: boolean) => {
+		const newNote = await Note.save({
+			parent_id: folderId,
+			is_todo: isTodo ? 1 : 0,
+		}, { provisional: true });
+
+		this.props.dispatch({
+			type: 'NAV_GO',
+			routeName: 'Note',
+			noteId: newNote.id,
+		});
+	};
+
 	private useEditorBeta(): boolean {
 		return this.props.useEditorBeta;
 	}
@@ -423,22 +438,27 @@ class NoteScreenComponent extends BaseScreenComponent {
 		}
 	}
 
+	private async loadNoteFromStore() {
+		await shared.initState(this);
+
+		if (this.state.note && this.state.note.body && Setting.value('sync.resourceDownloadMode') === 'auto') {
+			const resourceIds = await Note.linkedResourceIds(this.state.note.body);
+			await ResourceFetcher.instance().markForDownload(resourceIds);
+		}
+	}
+
 	public async componentDidMount() {
+
 		BackButtonService.addHandler(this.backHandler);
 		NavService.addHandler(this.navHandler);
 
 		shared.clearResourceCache();
 		shared.installResourceHandling(this.refreshResource);
 
-		await shared.initState(this);
-
 		this.undoRedoService_ = new UndoRedoService();
 		this.undoRedoService_.on('stackChange', this.undoRedoService_stackChange);
 
-		if (this.state.note && this.state.note.body && Setting.value('sync.resourceDownloadMode') === 'auto') {
-			const resourceIds = await Note.linkedResourceIds(this.state.note.body);
-			await ResourceFetcher.instance().markForDownload(resourceIds);
-		}
+		await this.loadNoteFromStore();
 
 		// Although it is async, we don't wait for the answer so that if permission
 		// has already been granted, it doesn't slow down opening the note. If it hasn't
@@ -450,7 +470,7 @@ class NoteScreenComponent extends BaseScreenComponent {
 		void ResourceFetcher.instance().markForDownload(event.resourceId);
 	}
 
-	public componentDidUpdate(prevProps: any) {
+	public async componentDidUpdate(prevProps: any) {
 		if (this.doFocusUpdate_) {
 			this.doFocusUpdate_ = false;
 			this.focusUpdate();
@@ -461,6 +481,14 @@ class NoteScreenComponent extends BaseScreenComponent {
 				type: 'NOTE_SIDE_MENU_OPTIONS_SET',
 				options: this.sideMenuOptions(),
 			});
+		}
+
+		if (prevProps.navigation !== this.props.navigation) {
+			await this.loadNoteFromStore();
+			this.undoRedoService_.reset();
+			if (this.useEditorBeta()) {
+				this.editorRef.current.reset();
+			}
 		}
 	}
 
@@ -1316,7 +1344,18 @@ class NoteScreenComponent extends BaseScreenComponent {
 					onRedoButtonPress={this.screenHeader_redoButtonPress}
 				/>
 				{titleComp}
-				{bodyComponent}
+				<GestureRecognizer
+					onSwipeLeft={(_gestureState) => {
+						void this.newNoteNavigate(this.props.folderId, isTodo);
+					}}
+					onSwipeRight={(_gestureState) => undefined}
+					style={{ flex: 1 }}
+					config={{
+						needVerticalScroll: true,
+					}}
+				>
+					{bodyComponent}
+				</GestureRecognizer>
 				{renderActionButton()}
 				{renderVoiceTypingDialog()}
 

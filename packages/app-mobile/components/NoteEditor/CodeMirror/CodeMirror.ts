@@ -383,6 +383,14 @@ export function initCodeMirror(
 
 	const editorControls = {
 		editor,
+		// XXX This is hacky, see https://codemirror.net/docs/migration/.
+		// The proper way would look like:
+		// cm.setState(EditorState.create({doc: text, extensions: ...}))
+		reset: () => {
+			editor.dispatch({
+				changes: { from: 0, to: editor.state.doc.length, insert: '' },
+			});
+		},
 		undo: () => {
 			undo(editor);
 			schedulePostUndoRedoDepthChange(editor, true);
