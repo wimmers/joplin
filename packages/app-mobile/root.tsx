@@ -261,13 +261,7 @@ const appReducer = (state = appDefaultState, action: any) => {
 					if (currentRoute.routeName === action.routeName) {
 					// nothing
 					} else {
-						// Quick item status should not be determined by history.
-						let route = currentRoute;
-						if (currentRoute.routeName === 'Notes') {
-							route = { ...currentRoute, showQuickItem: false };
-						}
-
-						navHistory.push(route);
+						navHistory.push(currentRoute);
 					}
 				}
 
@@ -396,6 +390,12 @@ const appReducer = (state = appDefaultState, action: any) => {
 
 			newState = { ...state };
 			newState.isOnMobileData = action.isOnMobileData;
+			break;
+
+		case 'SHOW_QUICK_ITEM_UPDATE':
+
+			newState = Object.assign({}, state);
+			newState.showQuickItem = action.showQuickItem;
 			break;
 
 		}
