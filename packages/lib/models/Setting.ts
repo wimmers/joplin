@@ -1040,6 +1040,28 @@ class Setting extends BaseModel {
 				isGlobal: true,
 			},
 
+			'editor.mobile.swipeEnabled': {
+				value: true,
+				type: SettingItemType.Bool,
+				section: 'note',
+				public: true,
+				appTypes: [AppType.Mobile],
+				label: () => _('Create new notes by swiping'),
+				storage: SettingStorage.File,
+				isGlobal: true,
+			},
+
+			'editor.mobile.swipingEnabled': {
+				value: true,
+				type: SettingItemType.Bool,
+				section: 'note',
+				public: true,
+				appTypes: [AppType.Mobile],
+				label: () => _('Show indicator when swiping'),
+				storage: SettingStorage.File,
+				isGlobal: true,
+			},
+
 			// Enables/disables spellcheck in the mobile markdown beta editor.
 			'editor.mobile.spellcheckEnabled': {
 				value: true,

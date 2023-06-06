@@ -1349,6 +1349,45 @@ class NoteScreenComponent extends BaseScreenComponent {
 			return <VoiceTypingDialog locale={currentLocale()} onText={this.voiceTypingDialog_onText} onDismiss={this.voiceTypingDialog_onDismiss}/>;
 		};
 
+		if (this.props.swipeEnabled) {
+
+			const onSwiping = this.props.swipingEnabled
+				? this.onSwipe.bind(this) : undefined;
+
+			const onSwipeLeft = (_gestureState: any) => {
+				this.setState({ gestureName: '' });
+				if (this.props.canHistoryGoForward) {
+					this.props.dispatch({
+						type: 'HISTORY_FORWARD',
+					});
+				} else {
+					void this.newNoteNavigate(this.props.folderId, isTodo);
+				}
+			};
+
+			const onSwipeRight = (_gestureState: any) => {
+				this.setState({ gestureName: '' });
+				if (this.props.canHistoryGoBackward) {
+					this.props.dispatch({
+						type: 'HISTORY_BACKWARD',
+					});
+				}
+			};
+
+			bodyComponent = <GestureRecognizer
+				onSwiping={onSwiping}
+				onSwipeLeft={onSwipeLeft}
+				onSwipeRight={onSwipeRight}
+				style={{ flex: 1 }}
+				config={{
+					needVerticalScroll: true,
+				}}
+			>
+				{bodyComponent}
+				{this.props.swipingEnabled && this.getSwipeIndicator()}
+			</GestureRecognizer>;
+		}
+
 		return (
 			<View style={this.rootStyle(this.props.themeId).root}>
 				<ScreenHeader
@@ -1366,23 +1405,7 @@ class NoteScreenComponent extends BaseScreenComponent {
 					onRedoButtonPress={this.screenHeader_redoButtonPress}
 				/>
 				{titleComp}
-				<GestureRecognizer
-					onSwiping={this.onSwipe}
-					onSwipeLeft={(_gestureState) => {
-						this.setState({ gestureName: '' });
-						void this.newNoteNavigate(this.props.folderId, isTodo);
-					}}
-					onSwipeRight={(_gestureState) => {
-						this.setState({ gestureName: '' });
-					}}
-					style={{ flex: 1 }}
-					config={{
-						needVerticalScroll: true,
-					}}
-				>
-					{bodyComponent}
-					{this.getSwipeIndicator()}
-				</GestureRecognizer>
+				{bodyComponent}
 				{renderActionButton()}
 				{renderVoiceTypingDialog()}
 
@@ -1411,6 +1434,8 @@ const NoteScreen = connect((state: any) => {
 		editorFont: [state.settings['style.editor.fontFamily']],
 		editorFontSize: state.settings['style.editor.fontSize'],
 		toolbarEnabled: state.settings['editor.mobile.toolbarEnabled'],
+		swipeEnabled: state.settings['editor.mobile.swipeEnabled'],
+		swipingEnabled: state.settings['editor.mobile.swipingEnabled'],
 		ftsEnabled: state.settings['db.ftsEnabled'],
 		sharedData: state.sharedData,
 		showSideMenu: state.showSideMenu,
