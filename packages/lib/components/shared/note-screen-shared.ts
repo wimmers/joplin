@@ -18,7 +18,7 @@ interface Shared {
 	clearResourceCache?: ()=> void;
 	attachedResources?: (noteBody: string)=> Promise<any>;
 	isModified?: (comp: any)=> boolean;
-	initState?: (comp: any)=> void;
+	initState?: (comp: any, overrideMode?: string)=> void;
 	toggleIsTodo_onPress?: (comp: any)=> void;
 	toggleCheckboxRange?: (ipcMessage: string, noteBody: string)=> any;
 	toggleCheckbox?: (ipcMessage: string, noteBody: string)=> void;
@@ -215,7 +215,7 @@ shared.isModified = function(comp: any) {
 	return !!Object.getOwnPropertyNames(diff).length;
 };
 
-shared.initState = async function(comp: any) {
+shared.initState = async function(comp: any, overrideMode?: string) {
 	const isProvisionalNote = comp.props.provisionalNoteIds.includes(comp.props.noteId);
 
 	const note = await Note.load(comp.props.noteId);
@@ -231,7 +231,7 @@ shared.initState = async function(comp: any) {
 	comp.setState({
 		lastSavedNote: { ...note },
 		note: note,
-		mode: mode,
+		mode: overrideMode || mode,
 		folder: folder,
 		isLoading: false,
 		fromShare: !!comp.props.sharedData,

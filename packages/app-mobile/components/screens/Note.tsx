@@ -262,6 +262,11 @@ class NoteScreenComponent extends BaseScreenComponent {
 		}, { provisional: true });
 
 		this.props.dispatch({
+			type: 'NOTE_SELECT',
+			id: newNote.id,
+		});
+
+		this.props.dispatch({
 			type: 'NAV_GO',
 			routeName: 'Note',
 			noteId: newNote.id,
@@ -441,8 +446,8 @@ class NoteScreenComponent extends BaseScreenComponent {
 		}
 	}
 
-	private async loadNoteFromStore() {
-		await shared.initState(this);
+	private async loadNoteFromStore(overrideMode?: string) {
+		await shared.initState(this, overrideMode);
 
 		if (this.state.note && this.state.note.body && Setting.value('sync.resourceDownloadMode') === 'auto') {
 			const resourceIds = await Note.linkedResourceIds(this.state.note.body);
@@ -486,12 +491,13 @@ class NoteScreenComponent extends BaseScreenComponent {
 			});
 		}
 
-		if (prevProps.navigation !== this.props.navigation) {
-			await this.loadNoteFromStore();
-			this.undoRedoService_.reset();
-			if (this.useEditorBeta()) {
+		if (this.props.noteId && this.props.noteId !== prevProps.noteId) {
+			await this.loadNoteFromStore(this.state.mode);
+			if (this.useEditorBeta() && this.editorRef.current) {
 				this.editorRef.current.reset();
+				this.editorRef.current.insertText(this.state.note.body);
 			}
+			this.undoRedoService_.reset();
 		}
 	}
 
@@ -1442,6 +1448,8 @@ const NoteScreen = connect((state: any) => {
 		provisionalNoteIds: state.provisionalNoteIds,
 		highlightedWords: state.highlightedWords,
 
+		canHistoryGoBackward: !!state.backwardHistoryNotes.length,
+		canHistoryGoForward: !!state.forwardHistoryNotes.length,
 		// What we call "beta editor" in this component is actually the (now
 		// default) CodeMirror editor. That should be refactored to make it less
 		// confusing.
