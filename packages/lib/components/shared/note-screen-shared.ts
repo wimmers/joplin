@@ -78,7 +78,8 @@ shared.saveNoteButton_press = async function(comp: any, folderId: string = null,
 		fields: BaseModel.diffObjectsFields(comp.state.lastSavedNote, note),
 	};
 
-	const hasAutoTitle = comp.state.newAndNoTitleChangeNoteId || (isProvisionalNote && !note.title);
+	const hasAutoTitle = comp.state.newAndNoTitleChangeNoteId === note.id
+		|| (isProvisionalNote && !note.title);
 	if (hasAutoTitle && options.autoTitle) {
 		note.title = Note.defaultTitle(note.body);
 		if (saveOptions.fields && saveOptions.fields.indexOf('title') < 0) saveOptions.fields.push('title');
