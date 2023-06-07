@@ -282,7 +282,8 @@ const appReducer = (state = appDefaultState, action: any) => {
 
 				newState.selectedNoteHash = '';
 
-				if ('noteId' in action) {
+				// For route 'Note', this will be handed off to NOTE_SELECT.
+				if ('noteId' in action && action.routeName !== 'Note') {
 					newState.selectedNoteIds = action.noteId ? [action.noteId] : [];
 				}
 
@@ -317,6 +318,19 @@ const appReducer = (state = appDefaultState, action: any) => {
 
 				newState.route = action;
 				newState.historyCanGoBack = !!navHistory.length;
+
+				// Hand off to shared reducer.
+				if (action.routeName === 'Note') {
+					action = {
+						type: 'NOTE_SELECT',
+						id: action.noteId,
+					};
+				} else if (action.routeName === 'Notes') {
+					action = {
+						type: 'FOLDER_SELECT',
+						id: action.folderId,
+					};
+				}
 			}
 			break;
 
